@@ -1,4 +1,4 @@
-FROM debian:buster as builder
+FROM ubuntu:18.04 as builder
 
 # Fluent Bit version
 ENV FLB_MAJOR 1
@@ -56,7 +56,7 @@ COPY conf/fluent-bit.conf \
      conf/plugins.conf \
      /fluent-bit/etc/
 
-FROM gcr.io/distroless/cc-debian10
+FROM  ubuntu:18.04
 LABEL maintainer="Eduardo Silva <eduardo@treasure-data.com>"
 LABEL Description="Fluent Bit docker image" Vendor="Fluent Organization" Version="1.1"
 
@@ -100,4 +100,4 @@ COPY --from=builder /fluent-bit /fluent-bit
 EXPOSE 2020
 
 # Entry point
-CMD ["/fluent-bit/bin/fluent-bit", "-c", "/fluent-bit/etc/fluent-bit.conf"]
+#CMD ["/fluent-bit/bin/fluent-bit", "-c", "/fluent-bit/etc/fluent-bit.conf"]
