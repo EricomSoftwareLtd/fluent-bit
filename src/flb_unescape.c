@@ -126,6 +126,7 @@ int flb_unescape_string_utf8(const char *in_buf, int sz, char *out_buf)
 {
     uint32_t ch;
     char temp[4];
+    const char *end;
     const char *next;
 
     int count_out = 0;
@@ -133,10 +134,10 @@ int flb_unescape_string_utf8(const char *in_buf, int sz, char *out_buf)
     int esc_in = 0;
     int esc_out = 0;
 
-    while (*in_buf && count_in < sz) {
+    end = in_buf + sz;
+    while (in_buf < end && *in_buf && count_in < sz) {
         next = in_buf + 1;
-
-        if (*in_buf == '\\') {
+        if (next < end && *in_buf == '\\') {
             esc_in = 2;
             switch (*next) {
             case '"':
@@ -255,6 +256,59 @@ int flb_unescape_string(const char *buf, int buf_len, char **unesc_buf)
             }
         }
         p[j++] = buf[i++];
+    }
+    p[j] = '\0';
+    return j;
+}
+
+
+/* mysql unquote */
+int flb_mysql_unquote_string(char *buf, int buf_len, char **unesc_buf)
+{
+    int i = 0;
+    int j = 0;
+    char *p;
+    char n;
+
+    p = *unesc_buf;
+    while (i < buf_len) {
+        if ((n = buf[i++]) != '\\') {
+            p[j++] = n;
+        } else if(i >= buf_len) {
+            p[j++] = n;
+        } else {
+            n = buf[i++];
+            switch(n) {
+            case 'n':
+                p[j++] = '\n';
+                break;
+            case 'r':
+                p[j++] = '\r';
+                break;
+            case 't':
+                p[j++] = '\t';
+                break;
+            case '\\':
+                p[j++] = '\\';
+                break;
+            case '\'':
+                p[j++] = '\'';
+                break;
+            case '\"':
+                p[j++] = '\"';
+                break;
+            case '0':
+                p[j++] = 0;
+                break;
+            case 'Z':
+                p[j++] = 0x1a;
+                break;
+            default:
+                p[j++] = '\\';
+                p[j++] = n;
+                break;
+            }
+        }
     }
     p[j] = '\0';
     return j;
